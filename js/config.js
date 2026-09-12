@@ -1,6 +1,0 @@
-// ---------------------------------------------------------------
-// config.js — ตั้งค่า URL ของ Google Apps Script Web App (Backend API)
-// วิธีหา URL: ใน GAS ไปที่ Deploy > Manage deployments > คัดลอก Web app URL
-// (ต้อง Deploy แบบ Execute as: Me / Who has access: Anyone)
-// ---------------------------------------------------------------
-const API_BASE_URL = 'https://script.google.com/macros/s/XXXXXXXXXXXXXXXXXXXX/exec'; // TODO: ใส่ URL จริงหลัง Deploy Code.gs
