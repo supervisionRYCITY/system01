@@ -152,9 +152,9 @@
           <input type="text" id="newsFormCategoryOther" class="w-full px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:border-navy">
         </div>
         <div>
-          <label class="block text-xs font-medium text-ink/60 mb-1">รูปปกข่าว</label>
-          <input type="file" id="newsFormImage" accept="image/*" class="w-full text-sm">
-          <img id="newsFormImagePreview" class="hidden mt-2 h-32 rounded-lg object-cover border border-line">
+          <label class="block text-xs font-medium text-ink/60 mb-1">รูปภาพข่าว (สูงสุด 5 รูป)</label>
+          <input type="file" id="newsFormImage" accept="image/*" multiple class="w-full text-sm">
+          <div id="newsFormImagePreviewGrid" class="grid grid-cols-3 gap-2 mt-2"></div>
         </div>
         <label class="flex items-center gap-2 text-sm text-ink/80">
           <input type="checkbox" id="newsFormPinned" class="rounded border-line">
