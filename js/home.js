@@ -98,6 +98,37 @@ function loadNews() {
     .catch(err => {
       row.innerHTML = `<p class="text-sm text-red-600">โหลดข่าวไม่สำเร็จ: ${err.message}</p>`;
     });
+}function showNewsDetail(id) {
+  const n = newsCache.find(x => x.News_ID === id);
+  if (!n) return;
+  document.getElementById('newsModalCategory').textContent = n.Category;
+  document.getElementById('newsModalTitle').textContent = n.Title;
+  document.getElementById('newsModalDate').textContent = formatThaiDate(n.Publish_Date);
+  document.getElementById('newsModalContent').textContent = n.Content;
+
+  // แกลเลอรีรูปภาพ — อ่านจากคอลัมน์ Image_URLs (JSON array) ถ้าไม่มีให้ fallback ไปใช้ Cover_Image_URL ตัวเดียว (ข่าวเก่าก่อนอัปเดตฟีเจอร์นี้)
+  const imagesEl = document.getElementById('newsModalImages');
+  let images = [];
+  try {
+    images = n.Image_URLs ? JSON.parse(n.Image_URLs) : [];
+  } catch (e) {
+    images = [];
+  }
+  if (!images.length && n.Cover_Image_URL) images = [n.Cover_Image_URL];
+
+  if (images.length) {
+    imagesEl.innerHTML = images.map(url => `
+      <a href="${url}" target="_blank" rel="noopener">
+        <img src="${url}" class="w-full h-24 object-cover rounded-lg border border-line" onerror="this.closest('a').style.display='none'">
+      </a>
+    `).join('');
+    imagesEl.classList.remove('hidden');
+  } else {
+    imagesEl.innerHTML = '';
+    imagesEl.classList.add('hidden');
+  }
+
+  openModal('newsModal');
 }
 
 function showNewsDetail(id) {
