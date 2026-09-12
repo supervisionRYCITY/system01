@@ -41,9 +41,14 @@
 
         <!-- ============ ข่าวประชาสัมพันธ์ ============ -->
         <section>
-          <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center justify-between mb-4">
             <h2 class="text-lg font-semibold text-navy">ข่าวประชาสัมพันธ์</h2>
-            <a href="#" class="text-sm text-gold hover:text-navy font-medium">ดูทั้งหมด</a>
+            <div class="flex items-center gap-3">
+              <button onclick="openNewsForm()" data-require-role="Admin" class="hidden text-sm font-medium text-white bg-navy hover:bg-navy-dark px-3 py-1.5 rounded-lg">
+                <i class="fa-solid fa-plus mr-1"></i>เพิ่มข่าว
+              </button>
+              <a href="#" class="text-sm text-gold hover:text-navy font-medium">ดูทั้งหมด</a>
+            </div>
           </div>
           <div id="newsRow" class="flex gap-4 overflow-x-auto scroll-row pb-2">
             <p class="text-sm text-ink/40">กำลังโหลด...</p>
@@ -101,10 +106,62 @@
     </div>
   </div>
 
+    <!-- ============ Modal: เพิ่ม/แก้ไขข่าว (Admin เท่านั้น) ============ -->
+  <div id="newsFormModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50" onclick="closeModal('newsFormModal')"></div>
+    <div class="relative bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto doc-card">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-line sticky top-0 bg-white">
+        <h3 id="newsFormTitle" class="text-base font-semibold text-navy">เพิ่มข่าวใหม่</h3>
+        <button onclick="closeModal('newsFormModal')" class="text-ink/40 hover:text-ink" aria-label="ปิด">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form id="newsForm" class="px-5 py-4 space-y-3" onsubmit="return handleNewsFormSubmit(event)">
+        <input type="hidden" id="newsFormId">
+        <div>
+          <label class="block text-xs font-medium text-ink/60 mb-1">หัวข้อข่าว</label>
+          <input type="text" id="newsFormTitleInput" required class="w-full px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:border-navy">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-ink/60 mb-1">คำโปรยสั้น</label>
+          <input type="text" id="newsFormShortDesc" required class="w-full px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:border-navy">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-ink/60 mb-1">เนื้อหาข่าว</label>
+          <textarea id="newsFormContent" required rows="4" class="w-full px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:border-navy"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-ink/60 mb-1">หมวดหมู่</label>
+            <input type="text" id="newsFormCategory" required class="w-full px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:border-navy">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-ink/60 mb-1">วันที่เผยแพร่</label>
+            <input type="date" id="newsFormPublishDate" required class="w-full px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:border-navy">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-ink/60 mb-1">รูปปกข่าว</label>
+          <input type="file" id="newsFormImage" accept="image/*" class="w-full text-sm">
+          <img id="newsFormImagePreview" class="hidden mt-2 h-32 rounded-lg object-cover border border-line">
+        </div>
+        <label class="flex items-center gap-2 text-sm text-ink/80">
+          <input type="checkbox" id="newsFormPinned" class="rounded border-line">
+          ปักหมุดข่าวนี้
+        </label>
+        <p id="newsFormError" class="hidden text-xs text-red-600"></p>
+        <button type="submit" id="newsFormSubmitBtn" class="w-full py-2.5 rounded-lg bg-navy text-white text-sm font-medium hover:bg-navy-dark disabled:opacity-60">
+          บันทึก
+        </button>
+      </form>
+    </div>
+  </div>
+  
   <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.10.1/sweetalert2.all.min.js"></script>
   <script src="js/config.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/common.js"></script>
   <script src="js/home.js"></script>
+  <script src="js/newsAdmin.js"></script>
 </body>
 </html>
