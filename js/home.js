@@ -163,15 +163,6 @@ function selectNewsModalImage(url, thumbEl) {
   thumbEl.classList.add('border-gold');
 }
 
-function showNewsDetail(id) {
-  const n = newsCache.find(x => x.News_ID === id);
-  if (!n) return;
-  document.getElementById('newsModalCategory').textContent = n.Category;
-  document.getElementById('newsModalTitle').textContent = n.Title;
-  document.getElementById('newsModalDate').textContent = formatThaiDate(n.Publish_Date);
-  document.getElementById('newsModalContent').textContent = n.Content;
-  openModal('newsModal');
-}
 
 // ---------------- คู่มือและเอกสารวิชาการ (ชั้นหนังสือ) ----------------
 function loadDocuments() {
