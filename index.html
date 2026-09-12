@@ -89,11 +89,11 @@
   <!-- ============ Modal: รายละเอียดข่าว ============ -->
   <div id="newsModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/50" onclick="closeModal('newsModal')"></div>
-    <div class="relative bg-white rounded-xl max-w-lg w-full max-h-[85vh] overflow-y-auto doc-card">
-      <div class="flex items-start justify-between px-5 py-4 border-b border-line sticky top-0 bg-white">
+    <div class="relative bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto doc-card">
+      <div class="flex items-start justify-between px-5 py-4 border-b border-line sticky top-0 bg-white z-10">
         <div>
           <span id="newsModalCategory" class="inline-block text-xs font-medium px-2 py-0.5 rounded bg-teal-light text-teal mb-1"></span>
-          <h3 id="newsModalTitle" class="text-base font-semibold text-navy"></h3>
+          <h3 id="newsModalTitle" class="text-lg font-semibold text-navy"></h3>
           <p id="newsModalDate" class="text-xs text-ink/50 mt-1"></p>
         </div>
         <button onclick="closeModal('newsModal')" class="text-ink/40 hover:text-ink shrink-0 ml-3" aria-label="ปิด">
@@ -101,8 +101,12 @@
         </button>
       </div>
       <div class="px-5 py-4">
-        <div id="newsModalImages" class="hidden grid grid-cols-3 gap-2 mb-4"></div>
-        <p id="newsModalContent" class="text-sm leading-7 text-ink/80"></p>
+        <div id="newsModalMainImageWrap" class="hidden mb-2">
+          <img id="newsModalMainImage" class="w-full max-h-96 object-contain rounded-lg bg-line" src="">
+        </div>
+        <div id="newsModalThumbs" class="hidden flex gap-2 overflow-x-auto pb-1 mb-4"></div>
+        <p id="newsModalShortDesc" class="hidden text-sm font-medium text-ink/70 italic mb-3"></p>
+        <p id="newsModalContent" class="text-sm leading-7 text-ink/80 whitespace-pre-line"></p>
       </div>
     </div>
   </div>
