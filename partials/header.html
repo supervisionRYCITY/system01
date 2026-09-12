@@ -15,10 +15,22 @@
         <i class="fa-solid fa-user-shield text-gold"></i>
         สำหรับบุคลากร
       </button>
-      <button onclick="openStaffLogin()"
+      <button id="staffLoginBtnMobile" onclick="openStaffLogin()"
               class="sm:hidden w-10 h-10 rounded-lg bg-navy text-white flex items-center justify-center" aria-label="สำหรับบุคลากร">
         <i class="fa-solid fa-user-shield text-gold"></i>
       </button>
+
+      <!-- แสดงเมื่อ Login แล้ว (ซ่อนไว้เป็นค่าเริ่มต้น — auth.js เป็นคนสลับให้) -->
+      <div id="userChip" class="hidden flex items-center gap-2">
+        <div class="hidden sm:flex flex-col items-end leading-tight">
+          <span id="userChipName" class="text-sm font-medium text-ink"></span>
+        </div>
+        <button onclick="handleLogout()"
+                class="flex items-center gap-2 pl-3 pr-3 sm:pr-4 py-2 rounded-lg border border-line text-sm text-ink hover:border-gold hover:text-navy">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span class="hidden sm:inline">ออกจากระบบ</span>
+        </button>
+      </div>
 
       <!-- ปุ่มเปิดเมนู (มือถือ/แท็บเล็ต) -->
       <button onclick="openSidebar()"
