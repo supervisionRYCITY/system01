@@ -68,7 +68,7 @@ function loadNews() {
 
       
       row.innerHTML = data.map(n => `
-        <article class="scroll-item shrink-0 w-[242px] doc-card rounded-xl overflow-hidden">
+        <article class="scroll-item shrink-0 w-[350px] doc-card rounded-xl overflow-hidden">
         <div class="relative h-[92px] bg-line">
             <img src="${n.Cover_Image_URL}" alt="" class="w-full h-full object-cover" onerror="this.style.display='none'">
             ${isTrue(n.Is_Pinned) ? '<span class="absolute top-1.5 right-1.5 bg-gold text-white text-xs px-2 py-0.5 rounded-full"><i class="fa-solid fa-thumbtack"></i></span>' : ''}
