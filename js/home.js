@@ -65,14 +65,20 @@ function loadNews() {
         row.innerHTML = `<p class="text-sm text-ink/50">ยังไม่มีข่าวประชาสัมพันธ์</p>`;
         return;
       }
-      row.innerHTML = data.map(n => `
+            row.innerHTML = data.map(n => `
         <article class="scroll-item shrink-0 w-72 doc-card rounded-xl overflow-hidden">
           <div class="relative h-36 bg-line">
             <img src="${n.Cover_Image_URL}" alt="" class="w-full h-full object-cover" onerror="this.style.display='none'">
             ${isTrue(n.Is_Pinned) ? '<span class="absolute top-2 right-2 bg-gold text-white text-[11px] px-2 py-0.5 rounded-full"><i class="fa-solid fa-thumbtack mr-1"></i>ปักหมุด</span>' : ''}
           </div>
           <div class="p-4">
-            <span class="inline-block text-xs font-medium px-2 py-0.5 rounded bg-teal-light text-teal mb-2">${n.Category}</span>
+            <div class="flex items-start justify-between mb-2">
+              <span class="inline-block text-xs font-medium px-2 py-0.5 rounded bg-teal-light text-teal">${n.Category}</span>
+              <div data-require-role="Admin" class="hidden flex items-center gap-2 shrink-0">
+                <button onclick="editNews('${n.News_ID}')" class="text-ink/40 hover:text-navy" aria-label="แก้ไข"><i class="fa-solid fa-pen text-xs"></i></button>
+                <button onclick="deleteNews('${n.News_ID}')" class="text-ink/40 hover:text-red-600" aria-label="ลบ"><i class="fa-solid fa-trash text-xs"></i></button>
+              </div>
+            </div>
             <h3 class="text-sm font-semibold text-ink leading-snug line-clamp-2 mb-1">${n.Title}</h3>
             <p class="text-xs text-ink/60 line-clamp-2 mb-3">${n.Short_Desc}</p>
             <div class="flex items-center justify-between">
@@ -84,6 +90,10 @@ function loadNews() {
           </div>
         </article>
       `).join('');
+
+      if (typeof applyRoleVisibility === 'function') {
+        applyRoleVisibility(getSession()?.user?.Role || null);
+      }
     })
     .catch(err => {
       row.innerHTML = `<p class="text-sm text-red-600">โหลดข่าวไม่สำเร็จ: ${err.message}</p>`;
