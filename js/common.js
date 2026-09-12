@@ -20,10 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
   Promise.all([
     loadPartial('partials/header.html', 'headerContainer'),
     loadPartial('partials/sidebar.html', 'sidebarContainer'),
+    loadPartial('partials/login-modal.html', 'loginModalContainer'),
   ])
     .then(() => {
       // Hook ให้แต่ละหน้ากำหนดเอง เช่น ตั้งชื่อหน้าใน Header หรือไฮไลต์เมนูที่ Active
       if (typeof afterLayoutLoaded === 'function') afterLayoutLoaded();
+      // ตรวจสอบว่ามี Session เดิมค้างอยู่ไหม (จาก auth.js) แล้วอัปเดต Header ให้ตรงสถานะ
+      if (typeof checkAuthState === 'function') checkAuthState();
     })
     .catch(err => console.error(err));
 });
@@ -62,13 +65,5 @@ function closeModal(modalId) {
   document.body.classList.remove('overflow-hidden');
 }
 
-// ---------- ปุ่มสำหรับบุคลากร ----------
-// TODO: เชื่อมกับระบบ Login จริงเมื่อพัฒนาโมดูล Authentication
-function openStaffLogin() {
-  Swal.fire({
-    icon: 'info',
-    title: 'ระบบสำหรับบุคลากร',
-    text: 'ระบบเข้าสู่ระบบอยู่ระหว่างการพัฒนา',
-    confirmButtonColor: '#0E3B5C',
-  });
-}
+// หมายเหตุ: ฟังก์ชัน openStaffLogin() ย้ายไปอยู่ที่ js/auth.js แล้ว
+// (เดิมเป็น Placeholder เฉยๆ ตอนนี้เปิด Modal Login จริง)
