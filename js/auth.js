@@ -107,6 +107,17 @@ function renderAuthUI(user) {
     if (guestBtnMobile) guestBtnMobile.classList.remove('hidden');
     userChip.classList.add('hidden');
   }
+
+  applyRoleVisibility(user ? user.Role : null);
+}
+
+// ซ่อน/โชว์เมนูใน Sidebar (หรือส่วนอื่นๆ) ตามสิทธิ์ผู้ใช้งาน
+// ใช้กับ Element ที่มี attribute data-require-role="ชื่อ Role" เช่น "Admin"
+function applyRoleVisibility(role) {
+  document.querySelectorAll('[data-require-role]').forEach(el => {
+    const requiredRole = el.getAttribute('data-require-role');
+    el.classList.toggle('hidden', role !== requiredRole);
+  });
 }
 
 // ตรวจสอบ Session เดิมตอนโหลดหน้า — เรียกจาก common.js หลัง Header/Modal โหลดเสร็จ
