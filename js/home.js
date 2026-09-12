@@ -67,24 +67,24 @@ function loadNews() {
       }
 
       
-        row.innerHTML = data.map(n => `
-        <article class="scroll-item shrink-0 w-[72px] doc-card rounded-xl overflow-hidden">
-          <div class="relative h-10 bg-line">
+              row.innerHTML = data.map(n => `
+        <article class="scroll-item shrink-0 w-28 doc-card rounded-xl overflow-hidden">
+          <div class="relative h-16 bg-line">
             <img src="${n.Cover_Image_URL}" alt="" class="w-full h-full object-cover" onerror="this.style.display='none'">
-            ${isTrue(n.Is_Pinned) ? '<span class="absolute top-0.5 right-0.5 bg-gold text-white text-[7px] px-1 py-0.5 rounded-full"><i class="fa-solid fa-thumbtack"></i></span>' : ''}
+            ${isTrue(n.Is_Pinned) ? '<span class="absolute top-1 right-1 bg-gold text-white text-[8px] px-1 py-0.5 rounded-full"><i class="fa-solid fa-thumbtack"></i></span>' : ''}
           </div>
-          <div class="p-1.5">
-            <div class="flex items-start justify-between mb-1 gap-0.5">
-              <span class="inline-block text-[8px] font-medium px-1 py-0.5 rounded bg-teal-light text-teal truncate">${n.Category}</span>
+          <div class="p-2">
+            <div class="flex items-start justify-between mb-1 gap-1">
+              <span class="inline-block text-[9px] font-medium px-1 py-0.5 rounded bg-teal-light text-teal truncate">${n.Category}</span>
               <div data-require-role="Admin" class="hidden flex items-center gap-1 shrink-0">
-                <button onclick="editNews('${n.News_ID}')" class="text-ink/40 hover:text-navy" aria-label="แก้ไข"><i class="fa-solid fa-pen text-[8px]"></i></button>
-                <button onclick="deleteNews('${n.News_ID}')" class="text-ink/40 hover:text-red-600" aria-label="ลบ"><i class="fa-solid fa-trash text-[8px]"></i></button>
+                <button onclick="editNews('${n.News_ID}')" class="text-ink/40 hover:text-navy" aria-label="แก้ไข"><i class="fa-solid fa-pen text-[9px]"></i></button>
+                <button onclick="deleteNews('${n.News_ID}')" class="text-ink/40 hover:text-red-600" aria-label="ลบ"><i class="fa-solid fa-trash text-[9px]"></i></button>
               </div>
             </div>
-            <h3 class="text-[9px] font-semibold text-ink leading-snug line-clamp-2 mb-1">${n.Title}</h3>
+            <h3 class="text-[10px] font-semibold text-ink leading-snug line-clamp-2 mb-1">${n.Title}</h3>
             <div class="flex items-center justify-between">
-              <span class="text-[7px] text-ink/40">${formatThaiDate(n.Publish_Date)}</span>
-              <button onclick="showNewsDetail('${n.News_ID}')" class="text-[8px] font-medium text-navy hover:text-gold">
+              <span class="text-[8px] text-ink/40">${formatThaiDate(n.Publish_Date)}</span>
+              <button onclick="showNewsDetail('${n.News_ID}')" class="text-[9px] font-medium text-navy hover:text-gold">
                 <i class="fa-solid fa-arrow-right"></i>
               </button>
             </div>
