@@ -1,0 +1,30 @@
+<header class="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-line">
+  <div class="h-16 px-4 sm:px-6 flex items-center justify-between">
+
+    <div class="min-w-0">
+      <!-- ค่าเริ่มต้น "ยินดีต้อนรับ" สำหรับหน้า Home — หน้าอื่นให้ตั้งค่าทับด้วย JS:
+           document.getElementById('pageTitle').textContent = 'ชื่อระบบของหน้านั้น'; -->
+      <h1 id="pageTitle" class="text-lg sm:text-xl font-semibold text-navy truncate">ยินดีต้อนรับ</h1>
+    </div>
+
+    <div class="flex items-center gap-2 sm:gap-3">
+
+      <!-- ปุ่มสำหรับบุคลากร (สถานะ Guest — ยังไม่ล็อกอิน) -->
+      <button id="staffLoginBtn" onclick="openStaffLogin()"
+              class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-navy text-white text-sm font-medium hover:bg-navy-dark">
+        <i class="fa-solid fa-user-shield text-gold"></i>
+        สำหรับบุคลากร
+      </button>
+      <button onclick="openStaffLogin()"
+              class="sm:hidden w-10 h-10 rounded-lg bg-navy text-white flex items-center justify-center" aria-label="สำหรับบุคลากร">
+        <i class="fa-solid fa-user-shield text-gold"></i>
+      </button>
+
+      <!-- ปุ่มเปิดเมนู (มือถือ/แท็บเล็ต) -->
+      <button onclick="openSidebar()"
+              class="lg:hidden w-10 h-10 rounded-lg border border-line text-ink flex items-center justify-center" aria-label="เปิดเมนู">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </div>
+  </div>
+</header>

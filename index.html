@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Supervision+ | กองการศึกษา เทศบาลนครระยอง</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sarabun: ['Sarabun', 'sans-serif'] },
+          colors: {
+            navy: { DEFAULT: '#0E3B5C', dark: '#092A42', light: '#15537D' },
+            gold: { DEFAULT: '#C08A2E', light: '#E0B563', pale: '#F5E9D2' },
+            teal: { DEFAULT: '#0F6E56', light: '#DCEEE8' },
+            paper: '#F7F6F2',
+            ink: '#1F2A33',
+            line: '#E2DFD6',
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="font-sarabun bg-paper text-ink">
+
+  <div class="flex min-h-screen">
+
+    <!-- คอลัมน์เนื้อหาหลัก -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <div id="headerContainer"></div>
+
+      <main class="flex-1 px-4 sm:px-6 lg:px-8 py-6 space-y-10 max-w-6xl w-full">
+
+        <!-- ============ ข่าวประชาสัมพันธ์ ============ -->
+        <section>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-navy">ข่าวประชาสัมพันธ์</h2>
+            <a href="#" class="text-sm text-gold hover:text-navy font-medium">ดูทั้งหมด</a>
+          </div>
+          <div id="newsRow" class="flex gap-4 overflow-x-auto scroll-row pb-2">
+            <p class="text-sm text-ink/40">กำลังโหลด...</p>
+          </div>
+        </section>
+
+        <!-- ============ คู่มือและเอกสารวิชาการ ============ -->
+        <section>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-navy">คู่มือและเอกสารวิชาการ</h2>
+            <a href="#" class="text-sm text-gold hover:text-navy font-medium">ดูทั้งหมด</a>
+          </div>
+          <div id="docsRow" class="flex gap-4 overflow-x-auto scroll-row pb-2">
+            <p class="text-sm text-ink/40">กำลังโหลด...</p>
+          </div>
+        </section>
+
+        <!-- ============ Dashboard สถานศึกษาในสังกัด ============ -->
+        <section>
+          <h2 class="text-lg font-semibold text-navy mb-4">Dashboard เกี่ยวกับสถานศึกษาในสังกัด</h2>
+
+          <div id="statsSummary" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+            <p class="text-sm text-ink/40">กำลังโหลด...</p>
+          </div>
+
+          <p class="text-sm font-medium text-ink/60 mb-3">แยกตามสถานศึกษา</p>
+          <div id="statsBySchool" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+
+      </main>
+    </div>
+
+    <div id="sidebarContainer"></div>
+  </div>
+
+  <!-- ============ Modal: รายละเอียดข่าว ============ -->
+  <div id="newsModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50" onclick="closeModal('newsModal')"></div>
+    <div class="relative bg-white rounded-xl max-w-lg w-full max-h-[85vh] overflow-y-auto doc-card">
+      <div class="flex items-start justify-between px-5 py-4 border-b border-line sticky top-0 bg-white">
+        <div>
+          <span id="newsModalCategory" class="inline-block text-xs font-medium px-2 py-0.5 rounded bg-teal-light text-teal mb-1"></span>
+          <h3 id="newsModalTitle" class="text-base font-semibold text-navy"></h3>
+          <p id="newsModalDate" class="text-xs text-ink/50 mt-1"></p>
+        </div>
+        <button onclick="closeModal('newsModal')" class="text-ink/40 hover:text-ink shrink-0 ml-3" aria-label="ปิด">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <div class="px-5 py-4">
+        <p id="newsModalContent" class="text-sm leading-7 text-ink/80"></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.10.1/sweetalert2.all.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>
