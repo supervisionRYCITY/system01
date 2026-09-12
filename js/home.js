@@ -65,32 +65,34 @@ function loadNews() {
         row.innerHTML = `<p class="text-sm text-ink/50">ยังไม่มีข่าวประชาสัมพันธ์</p>`;
         return;
       }
-                  row.innerHTML = data.map(n => `
-        <article class="scroll-item shrink-0 w-72 doc-card rounded-xl overflow-hidden">
-          <div class="relative h-36 bg-line">
+
+      
+        row.innerHTML = data.map(n => `
+        <article class="scroll-item shrink-0 w-[72px] doc-card rounded-xl overflow-hidden">
+          <div class="relative h-10 bg-line">
             <img src="${n.Cover_Image_URL}" alt="" class="w-full h-full object-cover" onerror="this.style.display='none'">
-            ${isTrue(n.Is_Pinned) ? '<span class="absolute top-2 right-2 bg-gold text-white text-[11px] px-2 py-0.5 rounded-full"><i class="fa-solid fa-thumbtack mr-1"></i>ปักหมุด</span>' : ''}
+            ${isTrue(n.Is_Pinned) ? '<span class="absolute top-0.5 right-0.5 bg-gold text-white text-[7px] px-1 py-0.5 rounded-full"><i class="fa-solid fa-thumbtack"></i></span>' : ''}
           </div>
-          <div class="p-4">
-            <div class="flex items-start justify-between mb-2">
-              <span class="inline-block text-xs font-medium px-2 py-0.5 rounded bg-teal-light text-teal">${n.Category}</span>
-              <div data-require-role="Admin" class="hidden flex items-center gap-2 shrink-0">
-                <button onclick="editNews('${n.News_ID}')" class="text-ink/40 hover:text-navy" aria-label="แก้ไข"><i class="fa-solid fa-pen text-xs"></i></button>
-                <button onclick="deleteNews('${n.News_ID}')" class="text-ink/40 hover:text-red-600" aria-label="ลบ"><i class="fa-solid fa-trash text-xs"></i></button>
+          <div class="p-1.5">
+            <div class="flex items-start justify-between mb-1 gap-0.5">
+              <span class="inline-block text-[8px] font-medium px-1 py-0.5 rounded bg-teal-light text-teal truncate">${n.Category}</span>
+              <div data-require-role="Admin" class="hidden flex items-center gap-1 shrink-0">
+                <button onclick="editNews('${n.News_ID}')" class="text-ink/40 hover:text-navy" aria-label="แก้ไข"><i class="fa-solid fa-pen text-[8px]"></i></button>
+                <button onclick="deleteNews('${n.News_ID}')" class="text-ink/40 hover:text-red-600" aria-label="ลบ"><i class="fa-solid fa-trash text-[8px]"></i></button>
               </div>
             </div>
-            <h3 class="text-sm font-semibold text-ink leading-snug line-clamp-2 mb-1">${n.Title}</h3>
-            <p class="text-xs text-ink/60 line-clamp-2 mb-3">${n.Short_Desc}</p>
+            <h3 class="text-[9px] font-semibold text-ink leading-snug line-clamp-2 mb-1">${n.Title}</h3>
             <div class="flex items-center justify-between">
-              <span class="text-[11px] text-ink/40">${formatThaiDate(n.Publish_Date)}</span>
-              <button onclick="showNewsDetail('${n.News_ID}')" class="text-xs font-medium text-navy hover:text-gold">
-                อ่านต่อ <i class="fa-solid fa-arrow-right text-[10px] ml-0.5"></i>
+              <span class="text-[7px] text-ink/40">${formatThaiDate(n.Publish_Date)}</span>
+              <button onclick="showNewsDetail('${n.News_ID}')" class="text-[8px] font-medium text-navy hover:text-gold">
+                <i class="fa-solid fa-arrow-right"></i>
               </button>
             </div>
           </div>
         </article>
       `).join('');
 
+      
       if (typeof applyRoleVisibility === 'function') {
         applyRoleVisibility(getSession()?.user?.Role || null);
       }
