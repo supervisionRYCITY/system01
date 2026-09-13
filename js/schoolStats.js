@@ -37,8 +37,6 @@ function getGradeLevelsForSchoolType_(schoolType) {
   return GRADE_LEVELS_.filter(g => allowedGroups.indexOf(g.group) !== -1);
 }
 
-// เก็บผลรายละเอียดระดับชั้นที่เคยโหลดไว้ (School_ID -> array) กันโหลดซ้ำเวลากางแล้วหุบแล้วกางใหม่
-let schoolGradeDetailCache = {};
 
 // JSONP แบบเดียวกับใน js/home.js
 // (home.js มีโค้ดเฉพาะของหน้า Home ที่จะ Error ถ้าถูกเรียกในหน้านี้)
@@ -165,34 +163,12 @@ function toggleSchoolGradeDetail(schoolId) {
     return;
   }
 
+  // ข้อมูลแยกระดับชั้น (GradeStats) มากับ action=dashboard/home ตั้งแต่ตอนโหลดหน้าแล้ว
+  // ไม่ต้องยิง Request เพิ่มอีกรอบ — แสดงผลได้ทันทีจาก Cache ในหน่วยความจำ
+  const school = schoolStatsCache.find(s => s.School_ID === schoolId);
+  renderSchoolGradeDetail_(schoolId, (school && school.GradeStats) || []);
   detailEl.classList.remove('hidden');
   btnEl.innerHTML = '<i class="fa-solid fa-chevron-up mr-1"></i>ซ่อนรายละเอียด';
-
-  if (schoolGradeDetailCache[schoolId]) {
-    renderSchoolGradeDetail_(schoolId, schoolGradeDetailCache[schoolId]);
-    return;
-  }
-
-  detailEl.innerHTML = `<p class="text-xs text-ink/40 text-center py-2">กำลังโหลด...</p>`;
-  loadSchoolGradeDetail_(schoolId)
-    .then(rows => {
-      schoolGradeDetailCache[schoolId] = rows;
-      renderSchoolGradeDetail_(schoolId, rows);
-    })
-    .catch(err => {
-      detailEl.innerHTML = `<p class="text-xs text-red-600 text-center py-2">โหลดไม่สำเร็จ: ${err.message}</p>`;
-    });
-}
-
-function loadSchoolGradeDetail_(schoolId) {
-  const school = schoolStatsCache.find(s => s.School_ID === schoolId);
-  if (!school) return Promise.reject(new Error('ไม่พบข้อมูลโรงเรียน'));
-
-  const url = `${API_BASE_URL}?action=schoolGradeStats&schoolId=${encodeURIComponent(schoolId)}&year=${encodeURIComponent(school.Academic_Year)}&semester=${encodeURIComponent(school.Semester)}`;
-  return schoolStatsJsonpRequestWithRetry_(url).then(json => {
-    if (json.status !== 'ok') throw new Error(json.message || 'เกิดข้อผิดพลาด');
-    return json.data;
-  });
 }
 
 function renderSchoolGradeDetail_(schoolId, rows) {
@@ -240,20 +216,11 @@ function openSchoolStatForm(schoolId) {
   document.getElementById('schoolStatFormSemester').value = school.Semester || '1';
   document.getElementById('schoolStatFormError').classList.add('hidden');
 
-  const rowsContainer = document.getElementById('schoolStatFormGradeRows');
-  rowsContainer.innerHTML = `<p class="text-xs text-ink/40 text-center py-2">กำลังโหลด...</p>`;
+  // ข้อมูลแยกระดับชั้น (GradeStats) มากับ action=dashboard/home ตั้งแต่ตอนโหลดหน้าแล้ว
+  // เติมฟอร์มได้ทันที ไม่ต้องรอ Request เพิ่ม (แก้ปัญหา Modal โหลดช้า)
+  renderSchoolStatFormGradeRows_(school.School_Type, school.GradeStats || []);
   openModal('schoolStatFormModal');
-
-  // ถ้ามีข้อมูลเดิมอยู่แล้วให้ดึงมาเติมในฟอร์ม ถ้ายังไม่มีข้อมูลเลยให้เริ่มจาก 0 ทุกช่อง
-  const detailPromise = schoolGradeDetailCache[schoolId]
-    ? Promise.resolve(schoolGradeDetailCache[schoolId])
-    : (school.Academic_Year ? loadSchoolGradeDetail_(schoolId).catch(() => []) : Promise.resolve([]));
-
-  detailPromise.then(existingRows => {
-    renderSchoolStatFormGradeRows_(school.School_Type, existingRows);
-  });
 }
-
 // วาดแถวกรอกข้อมูลตามระดับชั้นที่เกี่ยวข้องกับประเภทโรงเรียนนั้นเท่านั้น
 // (เช่น รร.ประถมศึกษา เห็นแค่ อนุบาล 1-3 + ป.1-6 ไม่เห็น ม.1-6)
 function renderSchoolStatFormGradeRows_(schoolType, existingRows) {
@@ -334,6 +301,7 @@ function handleSchoolStatFormSubmit(event) {
       Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', timer: 1200, showConfirmButton: false });
 
       // อัปเดตการ์ดของโรงเรียนนี้ทันทีด้วยค่าที่เพิ่งบันทึกสำเร็จ (Optimistic Update)
+      // รวมถึง GradeStats ด้วย เพื่อให้ Accordion/ฟอร์มครั้งถัดไปเห็นค่าล่าสุดทันที ไม่ต้องรอรีเฟรช
       const school = schoolStatsCache.find(s => s.School_ID === schoolId);
       if (school) {
         school.Academic_Year = result.Academic_Year;
@@ -341,10 +309,14 @@ function handleSchoolStatFormSubmit(event) {
         school.Student_Count = result.Student_Count;
         school.Student_Male_Count = totalMale;
         school.Student_Female_Count = totalFemale;
+        if (school.GradeStats) {
+          school.GradeStats = school.GradeStats.map(existing => {
+            const updated = gradeStats.find(gs => gs.Grade_Level === existing.Grade_Level);
+            return updated ? Object.assign({}, existing, { Male_Count: updated.Male_Count, Female_Count: updated.Female_Count }) : existing;
+          });
+        }
       }
 
-      // ล้าง Cache รายละเอียดระดับชั้นของโรงเรียนนี้ เพื่อให้ Accordion โหลดค่าล่าสุดใหม่รอบหน้า
-      delete schoolGradeDetailCache[schoolId];
       renderSchoolStatsList_();
 
       // รีเฟรชซ้ำแบบเงียบๆ เพื่อให้ตรงกับ Server เป๊ะ (เผื่อมีคนอื่นแก้ไขพร้อมกัน)
