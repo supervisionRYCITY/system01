@@ -6,37 +6,12 @@
 // เรียก GAS Web App ผ่าน JSONP แทน fetch() ตรงๆ เพราะ fetch() ติดปัญหา CORS
 // "Failed to fetch" กับ GAS Web App เวลาเรียกข้ามโดเมน (เช่นจาก Vercel)
 // JSONP ไม่ผ่าน fetch() แต่โหลดผ่าน <script> tag แทน จึงไม่ถูก CORS บล็อก
-let jsonpCounter = 0;
-function jsonpRequest(url) {
-  return new Promise((resolve, reject) => {
-    const callbackName = 'jsonp_cb_' + (jsonpCounter++) + '_' + Date.now();
-    const script = document.createElement('script');
-    let settled = false;
-
-    function cleanup() {
-      delete window[callbackName];
-      script.remove();
-    }
-
-    window[callbackName] = data => {
-      settled = true;
-      cleanup();
-      resolve(data);
-    };
-
-    script.onerror = () => {
-      cleanup();
-      if (!settled) reject(new Error('เชื่อมต่อ API ไม่สำเร็จ (ตรวจสอบ API_BASE_URL ใน js/config.js)'));
-    };
-
-    const sep = url.includes('?') ? '&' : '?';
-    script.src = url + sep + 'callback=' + callbackName;
-    document.body.appendChild(script);
-  });
-}
-
+// เรียกผ่าน Vercel Edge-Cached Proxy (api/gas-get.js) ด้วย fetch() ตรงๆ แทน JSONP
+// เพราะเป็น Same-Origin (โดเมนเดียวกับเว็บ) จึงไม่ติด CORS และเปิดโอกาสให้ Browser/CDN
+// แคชผลลัพธ์ได้จริง (JSONP เดิมทำไม่ได้เพราะ URL ไม่ซ้ำกันสักครั้ง)
 function fetchAction(action) {
-  return jsonpRequest(`${API_BASE_URL}?action=${action}`)
+  return fetch(`${GET_PROXY_URL}?action=${action}`)
+    .then(res => res.json())
     .then(json => {
       if (json.status !== 'ok') throw new Error(json.message || 'เกิดข้อผิดพลาด');
       return json.data;
