@@ -115,8 +115,8 @@ function renderAuthUI(user) {
 // ใช้กับ Element ที่มี attribute data-require-role="ชื่อ Role" เช่น "Admin"
 function applyRoleVisibility(role) {
   document.querySelectorAll('[data-require-role]').forEach(el => {
-    const requiredRole = el.getAttribute('data-require-role');
-    el.classList.toggle('hidden', role !== requiredRole);
+    const requiredRoles = el.getAttribute('data-require-role').split(',').map(r => r.trim());
+    el.classList.toggle('hidden', !requiredRoles.includes(role));
   });
 }
 
