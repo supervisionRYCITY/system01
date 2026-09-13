@@ -109,6 +109,11 @@ function renderAuthUI(user) {
   }
 
   applyRoleVisibility(user ? user.Role : null);
+
+  // Hook ให้แต่ละหน้ากำหนดเอง เผื่อมี Element ที่เช็คสิทธิ์แบบฝังไว้ใน Template โดยตรง
+  // (ไม่ได้ใช้ data-require-role) เช่นปุ่ม "แก้ไข" ในการ์ดของ school-stats.html
+  // ที่ applyRoleVisibility() ด้านบนไม่ครอบคลุมถึง
+  if (typeof onAuthStateChanged === 'function') onAuthStateChanged(user);
 }
 
 // ซ่อน/โชว์เมนูใน Sidebar (หรือส่วนอื่นๆ) ตามสิทธิ์ผู้ใช้งาน
@@ -121,7 +126,8 @@ function applyRoleVisibility(role) {
 }
 
 // ตรวจสอบ Session เดิมตอนโหลดหน้า — เรียกจาก common.js หลัง Header/Modal โหลดเสร็จ
-function checkAuthState() {
+function checkAuthState(retriesLeft) {
+  if (retriesLeft === undefined) retriesLeft = 2;
   const session = getSession();
   if (!session || !session.token) {
     renderAuthUI(null);
@@ -130,11 +136,27 @@ function checkAuthState() {
 
   callProxy('verifySession', { token: session.token })
     .then(user => renderAuthUI(user))
-    .catch(() => {
-      // ไม่ clearSession() ที่นี่ เพราะ Error อาจเป็นแค่ Backend ช้า/Timeout ชั่วคราว
-      // ไม่ใช่ Token หมดอายุจริง — ถ้าล้างทิ้งทันที ผู้ใช้งานจะถูกเด้งออกจากระบบ
-      // ทั้งที่ Session ยังไม่หมดอายุ (อาการ "รีเฟรชแล้วข้อมูลผู้ใช้หายบางครั้ง")
-      // Session จะถูกลบออกจาก LocalStorage จริงๆ ก็ต่อเมื่อกด "ออกจากระบบ" (handleLogout) เท่านั้น
-      renderAuthUI(null);
+    .catch(err => {
+      const message = (err && err.message) || '';
+      // ข้อความเหล่านี้มาจาก verifySession_() ฝั่ง Backend โดยตรง แปลว่า Session
+      // หมดอายุ/ถูกยกเลิก/ไม่พบผู้ใช้งานจริงๆ ไม่ใช่ปัญหาการเชื่อมต่อชั่วคราว —
+      // กรณีนี้เท่านั้นที่ควรล้าง Token ทิ้งจริง
+      const isSessionInvalid = /Session|ไม่พบผู้ใช้งาน|ไม่พบ Token/.test(message);
+
+      if (isSessionInvalid) {
+        clearSession();
+        renderAuthUI(null);
+        return;
+      }
+
+      if (retriesLeft > 0) {
+        // Error ชั่วคราว (เชื่อมต่อ Backend ไม่สำเร็จ/Timeout) — ลองใหม่ก่อน
+        // ไม่รีบเปลี่ยนหน้าตาเป็น Guest ทันที (แก้อาการ "รีเฟรชแล้วหาย")
+        setTimeout(() => checkAuthState(retriesLeft - 1), 1000);
+        return;
+      }
+
+      // ลอง Retry ครบแล้วยังเชื่อมต่อไม่ได้ — ปล่อยสถานะ UI ไว้แบบเดิม ไม่ Force Logout
+      // เพราะ Token ในเครื่องอาจยังใช้ได้จริง แค่ Backend ตอบช้าตอนนี้เท่านั้น
     });
 }
