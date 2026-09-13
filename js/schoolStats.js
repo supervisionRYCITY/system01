@@ -6,7 +6,41 @@
 
 let schoolStatsCache = [];
 
-// JSONP แบบเดียวกับใน js/home.js — แยกไว้ในไฟล์นี้เอง เพื่อไม่ต้องพึ่ง home.js
+// ระดับชั้น: ชุดมาตรฐานตายตัว — ต้องตรงกับ GRADE_LEVELS_/SCHOOL_TYPE_GRADE_GROUPS_ ใน Code.gs เป๊ะ
+// (ถ้าจะแก้ไขรายการระดับชั้น ต้องแก้ทั้ง 2 ไฟล์ให้ตรงกัน)
+const GRADE_LEVELS_ = [
+  { id: 'K1', name: 'อนุบาล 1', group: 'อนุบาล' },
+  { id: 'K2', name: 'อนุบาล 2', group: 'อนุบาล' },
+  { id: 'K3', name: 'อนุบาล 3', group: 'อนุบาล' },
+  { id: 'P1', name: 'ป.1', group: 'ประถม' },
+  { id: 'P2', name: 'ป.2', group: 'ประถม' },
+  { id: 'P3', name: 'ป.3', group: 'ประถม' },
+  { id: 'P4', name: 'ป.4', group: 'ประถม' },
+  { id: 'P5', name: 'ป.5', group: 'ประถม' },
+  { id: 'P6', name: 'ป.6', group: 'ประถม' },
+  { id: 'M1', name: 'ม.1', group: 'มัธยม' },
+  { id: 'M2', name: 'ม.2', group: 'มัธยม' },
+  { id: 'M3', name: 'ม.3', group: 'มัธยม' },
+  { id: 'M4', name: 'ม.4', group: 'มัธยม' },
+  { id: 'M5', name: 'ม.5', group: 'มัธยม' },
+  { id: 'M6', name: 'ม.6', group: 'มัธยม' },
+];
+
+const SCHOOL_TYPE_GRADE_GROUPS_ = {
+  'ปฐมวัย': ['อนุบาล'],
+  'ประถมศึกษา': ['อนุบาล', 'ประถม'],
+  'มัธยมศึกษา': ['มัธยม'],
+};
+
+function getGradeLevelsForSchoolType_(schoolType) {
+  const allowedGroups = SCHOOL_TYPE_GRADE_GROUPS_[schoolType] || [];
+  return GRADE_LEVELS_.filter(g => allowedGroups.indexOf(g.group) !== -1);
+}
+
+// เก็บผลรายละเอียดระดับชั้นที่เคยโหลดไว้ (School_ID -> array) กันโหลดซ้ำเวลากางแล้วหุบแล้วกางใหม่
+let schoolGradeDetailCache = {};
+
+// JSONP แบบเดียวกับใน js/home.js
 // (home.js มีโค้ดเฉพาะของหน้า Home ที่จะ Error ถ้าถูกเรียกในหน้านี้)
 let schoolStatsJsonpCounter = 0;
 function schoolStatsJsonpRequest(url) {
@@ -108,8 +142,91 @@ function renderSchoolStatsList_() {
           <p class="text-[11px] text-ink/50">หญิง</p>
         </div>
       </div>
+      ${s.Academic_Year ? `
+        <button onclick="toggleSchoolGradeDetail('${s.School_ID}')" id="gradeToggleBtn-${s.School_ID}" class="w-full text-center text-xs text-navy hover:text-gold mt-3 pt-3 border-t border-line">
+          <i class="fa-solid fa-chevron-down mr-1"></i>ดูรายละเอียดตามระดับชั้น
+        </button>
+        <div id="gradeDetail-${s.School_ID}" class="hidden mt-2"></div>
+      ` : ''}
     </div>
   `).join('');
+}
+
+// ---------------- Accordion: รายละเอียดแยกระดับชั้น ----------------
+function toggleSchoolGradeDetail(schoolId) {
+  const detailEl = document.getElementById('gradeDetail-' + schoolId);
+  const btnEl = document.getElementById('gradeToggleBtn-' + schoolId);
+  if (!detailEl) return;
+
+  const isHidden = detailEl.classList.contains('hidden');
+  if (!isHidden) {
+    detailEl.classList.add('hidden');
+    btnEl.innerHTML = '<i class="fa-solid fa-chevron-down mr-1"></i>ดูรายละเอียดตามระดับชั้น';
+    return;
+  }
+
+  detailEl.classList.remove('hidden');
+  btnEl.innerHTML = '<i class="fa-solid fa-chevron-up mr-1"></i>ซ่อนรายละเอียด';
+
+  if (schoolGradeDetailCache[schoolId]) {
+    renderSchoolGradeDetail_(schoolId, schoolGradeDetailCache[schoolId]);
+    return;
+  }
+
+  detailEl.innerHTML = `<p class="text-xs text-ink/40 text-center py-2">กำลังโหลด...</p>`;
+  loadSchoolGradeDetail_(schoolId)
+    .then(rows => {
+      schoolGradeDetailCache[schoolId] = rows;
+      renderSchoolGradeDetail_(schoolId, rows);
+    })
+    .catch(err => {
+      detailEl.innerHTML = `<p class="text-xs text-red-600 text-center py-2">โหลดไม่สำเร็จ: ${err.message}</p>`;
+    });
+}
+
+function loadSchoolGradeDetail_(schoolId) {
+  const school = schoolStatsCache.find(s => s.School_ID === schoolId);
+  if (!school) return Promise.reject(new Error('ไม่พบข้อมูลโรงเรียน'));
+
+  const url = `${API_BASE_URL}?action=schoolGradeStats&schoolId=${encodeURIComponent(schoolId)}&year=${encodeURIComponent(school.Academic_Year)}&semester=${encodeURIComponent(school.Semester)}`;
+  return schoolStatsJsonpRequestWithRetry_(url).then(json => {
+    if (json.status !== 'ok') throw new Error(json.message || 'เกิดข้อผิดพลาด');
+    return json.data;
+  });
+}
+
+function renderSchoolGradeDetail_(schoolId, rows) {
+  const detailEl = document.getElementById('gradeDetail-' + schoolId);
+  if (!detailEl) return;
+
+  const rowsWithData = rows.filter(r => r.Male_Count > 0 || r.Female_Count > 0);
+  if (!rowsWithData.length) {
+    detailEl.innerHTML = `<p class="text-xs text-ink/40 text-center py-2">ยังไม่มีข้อมูลแยกระดับชั้น</p>`;
+    return;
+  }
+
+  detailEl.innerHTML = `
+    <table class="w-full text-xs">
+      <thead>
+        <tr class="text-ink/50">
+          <th class="text-left font-medium py-1">ระดับชั้น</th>
+          <th class="text-center font-medium py-1">ชาย</th>
+          <th class="text-center font-medium py-1">หญิง</th>
+          <th class="text-center font-medium py-1">รวม</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rowsWithData.map(r => `
+          <tr class="border-t border-line/60">
+            <td class="py-1 text-ink/80">${r.Grade_Name}</td>
+            <td class="py-1 text-center text-ink/80">${r.Male_Count}</td>
+            <td class="py-1 text-center text-ink/80">${r.Female_Count}</td>
+            <td class="py-1 text-center font-medium text-navy">${r.Male_Count + r.Female_Count}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
 }
 
 function openSchoolStatForm(schoolId) {
@@ -117,14 +234,58 @@ function openSchoolStatForm(schoolId) {
   if (!school) return;
 
   document.getElementById('schoolStatFormSchoolId').value = school.School_ID;
+  document.getElementById('schoolStatFormSchoolType').value = school.School_Type;
   document.getElementById('schoolStatFormSchoolName').textContent = school.School_Name;
   document.getElementById('schoolStatFormYear').value = school.Academic_Year || (new Date().getFullYear() + 543);
   document.getElementById('schoolStatFormSemester').value = school.Semester || '1';
-  document.getElementById('schoolStatFormMale').value = school.Student_Male_Count || 0;
-  document.getElementById('schoolStatFormFemale').value = school.Student_Female_Count || 0;
   document.getElementById('schoolStatFormError').classList.add('hidden');
 
+  const rowsContainer = document.getElementById('schoolStatFormGradeRows');
+  rowsContainer.innerHTML = `<p class="text-xs text-ink/40 text-center py-2">กำลังโหลด...</p>`;
   openModal('schoolStatFormModal');
+
+  // ถ้ามีข้อมูลเดิมอยู่แล้วให้ดึงมาเติมในฟอร์ม ถ้ายังไม่มีข้อมูลเลยให้เริ่มจาก 0 ทุกช่อง
+  const detailPromise = schoolGradeDetailCache[schoolId]
+    ? Promise.resolve(schoolGradeDetailCache[schoolId])
+    : (school.Academic_Year ? loadSchoolGradeDetail_(schoolId).catch(() => []) : Promise.resolve([]));
+
+  detailPromise.then(existingRows => {
+    renderSchoolStatFormGradeRows_(school.School_Type, existingRows);
+  });
+}
+
+// วาดแถวกรอกข้อมูลตามระดับชั้นที่เกี่ยวข้องกับประเภทโรงเรียนนั้นเท่านั้น
+// (เช่น รร.ประถมศึกษา เห็นแค่ อนุบาล 1-3 + ป.1-6 ไม่เห็น ม.1-6)
+function renderSchoolStatFormGradeRows_(schoolType, existingRows) {
+  const grades = getGradeLevelsForSchoolType_(schoolType);
+  const container = document.getElementById('schoolStatFormGradeRows');
+
+  container.innerHTML = grades.map(g => {
+    const existing = existingRows.find(r => r.Grade_Level === g.id) || { Male_Count: 0, Female_Count: 0 };
+    return `
+      <div class="grid grid-cols-3 gap-2 items-center">
+        <label class="text-xs text-ink/70">${g.name}</label>
+        <input type="number" min="0" data-grade-id="${g.id}" data-gender="male"
+               value="${existing.Male_Count}" oninput="updateSchoolStatFormTotal_()"
+               class="w-full px-2 py-1.5 rounded-lg border border-line text-sm text-center focus:outline-none focus:border-navy">
+        <input type="number" min="0" data-grade-id="${g.id}" data-gender="female"
+               value="${existing.Female_Count}" oninput="updateSchoolStatFormTotal_()"
+               class="w-full px-2 py-1.5 rounded-lg border border-line text-sm text-center focus:outline-none focus:border-navy">
+      </div>
+    `;
+  }).join('');
+
+  updateSchoolStatFormTotal_();
+}
+
+function updateSchoolStatFormTotal_() {
+  const maleInputs = document.querySelectorAll('#schoolStatFormGradeRows input[data-gender="male"]');
+  const femaleInputs = document.querySelectorAll('#schoolStatFormGradeRows input[data-gender="female"]');
+  let male = 0;
+  let female = 0;
+  maleInputs.forEach(el => { male += Number(el.value) || 0; });
+  femaleInputs.forEach(el => { female += Number(el.value) || 0; });
+  document.getElementById('schoolStatFormTotal').textContent = `${male + female} คน (ชาย ${male} / หญิง ${female})`;
 }
 
 function handleSchoolStatFormSubmit(event) {
@@ -139,13 +300,29 @@ function handleSchoolStatFormSubmit(event) {
   const submitBtn = document.getElementById('schoolStatFormSubmitBtn');
   errorEl.classList.add('hidden');
 
+  const schoolId = document.getElementById('schoolStatFormSchoolId').value;
+  const schoolType = document.getElementById('schoolStatFormSchoolType').value;
+  const grades = getGradeLevelsForSchoolType_(schoolType);
+
+  const gradeStats = grades.map(g => {
+    const maleInput = document.querySelector(`#schoolStatFormGradeRows input[data-grade-id="${g.id}"][data-gender="male"]`);
+    const femaleInput = document.querySelector(`#schoolStatFormGradeRows input[data-grade-id="${g.id}"][data-gender="female"]`);
+    return {
+      Grade_Level: g.id,
+      Male_Count: Number(maleInput ? maleInput.value : 0) || 0,
+      Female_Count: Number(femaleInput ? femaleInput.value : 0) || 0,
+    };
+  });
+
+  const totalMale = gradeStats.reduce((sum, g) => sum + g.Male_Count, 0);
+  const totalFemale = gradeStats.reduce((sum, g) => sum + g.Female_Count, 0);
+
   const payload = {
     token: session.token,
-    School_ID: document.getElementById('schoolStatFormSchoolId').value,
+    School_ID: schoolId,
     Academic_Year: document.getElementById('schoolStatFormYear').value,
     Semester: document.getElementById('schoolStatFormSemester').value,
-    Student_Male_Count: document.getElementById('schoolStatFormMale').value,
-    Student_Female_Count: document.getElementById('schoolStatFormFemale').value,
+    GradeStats: gradeStats,
   };
 
   submitBtn.disabled = true;
@@ -157,19 +334,20 @@ function handleSchoolStatFormSubmit(event) {
       Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', timer: 1200, showConfirmButton: false });
 
       // อัปเดตการ์ดของโรงเรียนนี้ทันทีด้วยค่าที่เพิ่งบันทึกสำเร็จ (Optimistic Update)
-      // ไม่ต้องรอผลจาก loadSchoolStats() ที่บางครั้งเชื่อมต่อ API ไม่สำเร็จชั่วคราว
-      const school = schoolStatsCache.find(s => s.School_ID === payload.School_ID);
+      const school = schoolStatsCache.find(s => s.School_ID === schoolId);
       if (school) {
         school.Academic_Year = result.Academic_Year;
         school.Semester = result.Semester;
         school.Student_Count = result.Student_Count;
-        school.Student_Male_Count = Number(payload.Student_Male_Count) || 0;
-        school.Student_Female_Count = Number(payload.Student_Female_Count) || 0;
-        renderSchoolStatsList_();
+        school.Student_Male_Count = totalMale;
+        school.Student_Female_Count = totalFemale;
       }
 
+      // ล้าง Cache รายละเอียดระดับชั้นของโรงเรียนนี้ เพื่อให้ Accordion โหลดค่าล่าสุดใหม่รอบหน้า
+      delete schoolGradeDetailCache[schoolId];
+      renderSchoolStatsList_();
+
       // รีเฟรชซ้ำแบบเงียบๆ เพื่อให้ตรงกับ Server เป๊ะ (เผื่อมีคนอื่นแก้ไขพร้อมกัน)
-      // ถ้าเชื่อมต่อไม่สำเร็จ จะไม่ทับการ์ดที่อัปเดตไปแล้วด้านบน
       loadSchoolStats(true);
     })
     .catch(err => {
