@@ -1,0 +1,11 @@
+{
+  "name": "supervision-plus",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tailwindcss -i ./css/tailwind-input.css -o ./css/tailwind.output.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  }
+}
