@@ -11,3 +11,10 @@ const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbwYUIThqcQ9relw12m
 // เอง) จึงไม่ต้องแก้ค่านี้ ไม่ว่าจะ Deploy ที่โดเมนไหนก็ตาม
 // ---------------------------------------------------------------
 const PROXY_URL = '/api/gas';
+
+// ---------------------------------------------------------------
+// GET_PROXY_URL — ใช้สำหรับดึงข้อมูล (news/documents/dashboard/home) ผ่าน Vercel
+// Edge-Cached Proxy (api/gas-get.js) แทน JSONP แบบเดิม เพื่อให้ Cache ของ Browser/CDN
+// ทำงานได้จริง (JSONP มี ?callback=... สุ่มทุกครั้ง ทำให้ Cache ไม่เคยทำงานเลย)
+// ---------------------------------------------------------------
+const GET_PROXY_URL = '/api/gas-get';
