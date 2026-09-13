@@ -49,44 +49,21 @@ function getGradeLevelsForSchoolType_(schoolType) {
 
 // JSONP แบบเดียวกับใน js/home.js
 // (home.js มีโค้ดเฉพาะของหน้า Home ที่จะ Error ถ้าถูกเรียกในหน้านี้)
-let schoolStatsJsonpCounter = 0;
-function schoolStatsJsonpRequest(url) {
-  return new Promise((resolve, reject) => {
-    const callbackName = 'ssjsonp_cb_' + (schoolStatsJsonpCounter++) + '_' + Date.now();
-    const script = document.createElement('script');
-    let settled = false;
-
-    function cleanup() {
-      delete window[callbackName];
-      script.remove();
-    }
-
-    window[callbackName] = data => {
-      settled = true;
-      cleanup();
-      resolve(data);
-    };
-
-    script.onerror = () => {
-      cleanup();
-      if (!settled) reject(new Error('เชื่อมต่อ API ไม่สำเร็จ'));
-    };
-
-    const sep = url.includes('?') ? '&' : '?';
-    script.src = url + sep + 'callback=' + callbackName;
-    document.body.appendChild(script);
+// เรียกผ่าน Vercel Edge-Cached Proxy (api/gas-get.js) ด้วย fetch() แทน JSONP เดิม
+function schoolStatsFetchJson_(url) {
+  return fetch(url).then(res => {
+    if (!res.ok) throw new Error('เชื่อมต่อ API ไม่สำเร็จ (' + res.status + ')');
+    return res.json();
   });
 }
 
-// เรียก JSONP พร้อม Retry อัตโนมัติ (แก้ปัญหา "เชื่อมต่อ API ไม่สำเร็จ" ที่เกิดเป็นบางครั้ง
-// ซึ่งมักเกิดจาก Google Apps Script ยุ่ง/ช้าชั่วคราว โดยเฉพาะเวลามีหลายระบบ/หลายแท็บ
-// เรียกพร้อมกัน — ลองใหม่อัตโนมัติก่อนค่อยถือว่าเชื่อมต่อไม่สำเร็จจริง
-function schoolStatsJsonpRequestWithRetry_(url, retriesLeft) {
+// Retry อัตโนมัติ (คงพฤติกรรมเดิมไว้ เผื่อ GAS ช้า/ล้มเหลวชั่วคราว)
+function schoolStatsFetchWithRetry_(url, retriesLeft) {
   if (retriesLeft === undefined) retriesLeft = 2;
-  return schoolStatsJsonpRequest(url).catch(err => {
+  return schoolStatsFetchJson_(url).catch(err => {
     if (retriesLeft <= 0) throw err;
     return new Promise(resolve => setTimeout(resolve, 800))
-      .then(() => schoolStatsJsonpRequestWithRetry_(url, retriesLeft - 1));
+      .then(() => schoolStatsFetchWithRetry_(url, retriesLeft - 1));
   });
 }
 
@@ -96,7 +73,7 @@ function loadSchoolStats(silent) {
   const container = document.getElementById('schoolStatsList');
   if (!silent) container.innerHTML = `<p class="text-sm text-ink/40">กำลังโหลด...</p>`;
 
-  return schoolStatsJsonpRequestWithRetry_(`${API_BASE_URL}?action=dashboard`)
+  return schoolStatsFetchWithRetry_(`${GET_PROXY_URL}?action=dashboard`)
     .then(json => {
       if (json.status !== 'ok') throw new Error(json.message || 'เกิดข้อผิดพลาด');
       schoolStatsCache = json.data;
