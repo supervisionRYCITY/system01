@@ -215,12 +215,15 @@ function loadDashboard() {
         admin: acc.admin + Number(s.Admin_Count || 0),
         teacher: acc.teacher + Number(s.Teacher_Count || 0),
         student: acc.student + Number(s.Student_Count || 0),
-      }), { admin: 0, teacher: 0, student: 0 });
+        male: acc.male + Number(s.Student_Male_Count || 0),
+        female: acc.female + Number(s.Student_Female_Count || 0),
+      }), { admin: 0, teacher: 0, student: 0, male: 0, female: 0 });
 
       const summaryCards = [
         { label: 'ผู้บริหารสถานศึกษา', value: totals.admin, icon: 'fa-user-tie', accent: 'navy' },
         { label: 'ครูและบุคลากรทางการศึกษา', value: totals.teacher, icon: 'fa-chalkboard-user', accent: 'teal' },
-        { label: 'นักเรียน', value: totals.student, icon: 'fa-child-reaching', accent: 'gold' },
+        { label: 'นักเรียน', value: totals.student, icon: 'fa-child-reaching', accent: 'gold',
+          sub: `ชาย ${totals.male.toLocaleString('th-TH')} / หญิง ${totals.female.toLocaleString('th-TH')}` },
       ];
 
       summaryEl.innerHTML = summaryCards.map(c => `
@@ -231,6 +234,7 @@ function loadDashboard() {
           <div>
             <p class="text-2xl font-semibold text-ink leading-tight">${c.value.toLocaleString('th-TH')}</p>
             <p class="text-xs text-ink/60">${c.label}</p>
+            ${c.sub ? `<p class="text-[11px] text-ink/40 mt-0.5">${c.sub}</p>` : ''}
           </div>
         </div>
       `).join('');
@@ -251,6 +255,7 @@ function loadDashboard() {
             <div>
               <p class="text-base font-semibold text-ink">${s.Student_Count}</p>
               <p class="text-[11px] text-ink/50">นักเรียน</p>
+              <p class="text-[10px] text-ink/40">(ช ${s.Student_Male_Count || 0} / ญ ${s.Student_Female_Count || 0})</p>
             </div>
           </div>
         </div>
