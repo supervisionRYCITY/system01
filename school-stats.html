@@ -67,6 +67,7 @@
       </div>
       <form id="schoolStatForm" class="px-5 py-4 space-y-3" onsubmit="return handleSchoolStatFormSubmit(event)">
         <input type="hidden" id="schoolStatFormSchoolId">
+        <input type="hidden" id="schoolStatFormSchoolType">
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-ink/60 mb-1">ปีการศึกษา (พ.ศ.)</label>
@@ -80,16 +81,21 @@
             </select>
           </div>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-medium text-ink/60 mb-1">จำนวนนักเรียนชาย</label>
-            <input type="number" min="0" id="schoolStatFormMale" required class="w-full px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:border-navy">
+
+        <div>
+          <div class="grid grid-cols-3 gap-2 px-1 mb-1">
+            <p class="text-xs font-medium text-ink/60">ระดับชั้น</p>
+            <p class="text-xs font-medium text-ink/60 text-center">ชาย</p>
+            <p class="text-xs font-medium text-ink/60 text-center">หญิง</p>
           </div>
-          <div>
-            <label class="block text-xs font-medium text-ink/60 mb-1">จำนวนนักเรียนหญิง</label>
-            <input type="number" min="0" id="schoolStatFormFemale" required class="w-full px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:border-navy">
-          </div>
+          <div id="schoolStatFormGradeRows" class="space-y-1.5 max-h-56 overflow-y-auto pr-1"></div>
         </div>
+
+        <div class="flex items-center justify-between px-1 pt-1 border-t border-line text-sm font-medium text-navy">
+          <span>รวมทั้งหมด</span>
+          <span id="schoolStatFormTotal">0 คน (ชาย 0 / หญิง 0)</span>
+        </div>
+
         <p id="schoolStatFormError" class="hidden text-xs text-red-600"></p>
         <button type="submit" id="schoolStatFormSubmitBtn" class="w-full py-2.5 rounded-lg bg-navy text-white text-sm font-medium hover:bg-navy-dark disabled:opacity-60">
           บันทึก
