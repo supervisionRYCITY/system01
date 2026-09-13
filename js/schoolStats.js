@@ -37,15 +37,32 @@ function schoolStatsJsonpRequest(url) {
   });
 }
 
-function loadSchoolStats() {
+// เรียก JSONP พร้อม Retry อัตโนมัติ (แก้ปัญหา "เชื่อมต่อ API ไม่สำเร็จ" ที่เกิดเป็นบางครั้ง
+// ซึ่งมักเกิดจาก Google Apps Script ยุ่ง/ช้าชั่วคราว โดยเฉพาะเวลามีหลายระบบ/หลายแท็บ
+// เรียกพร้อมกัน — ลองใหม่อัตโนมัติก่อนค่อยถือว่าเชื่อมต่อไม่สำเร็จจริง
+function schoolStatsJsonpRequestWithRetry_(url, retriesLeft) {
+  if (retriesLeft === undefined) retriesLeft = 2;
+  return schoolStatsJsonpRequest(url).catch(err => {
+    if (retriesLeft <= 0) throw err;
+    return new Promise(resolve => setTimeout(resolve, 800))
+      .then(() => schoolStatsJsonpRequestWithRetry_(url, retriesLeft - 1));
+  });
+}
+
+// silent = true: ใช้ตอนรีเฟรชเงียบๆ หลังบันทึกฟอร์มสำเร็จ (การ์ดถูกอัปเดตแบบ Optimistic
+// ไปแล้วก่อนหน้า) ถ้ารอบนี้เชื่อมต่อไม่สำเร็จ จะไม่เขียนทับการ์ดที่อัปเดตไปแล้วด้วย Error
+function loadSchoolStats(silent) {
   const container = document.getElementById('schoolStatsList');
-  schoolStatsJsonpRequest(`${API_BASE_URL}?action=dashboard`)
+  if (!silent) container.innerHTML = `<p class="text-sm text-ink/40">กำลังโหลด...</p>`;
+
+  return schoolStatsJsonpRequestWithRetry_(`${API_BASE_URL}?action=dashboard`)
     .then(json => {
       if (json.status !== 'ok') throw new Error(json.message || 'เกิดข้อผิดพลาด');
       schoolStatsCache = json.data;
       renderSchoolStatsList_();
     })
     .catch(err => {
+      if (silent) return;
       container.innerHTML = `<p class="text-sm text-red-600">โหลดข้อมูลไม่สำเร็จ: ${err.message}</p>`;
     });
 }
@@ -135,10 +152,25 @@ function handleSchoolStatFormSubmit(event) {
   submitBtn.textContent = 'กำลังบันทึก...';
 
   callProxy('saveSchoolStat', payload)
-    .then(() => {
+    .then(result => {
       closeModal('schoolStatFormModal');
       Swal.fire({ icon: 'success', title: 'บันทึกสำเร็จ', timer: 1200, showConfirmButton: false });
-      loadSchoolStats();
+
+      // อัปเดตการ์ดของโรงเรียนนี้ทันทีด้วยค่าที่เพิ่งบันทึกสำเร็จ (Optimistic Update)
+      // ไม่ต้องรอผลจาก loadSchoolStats() ที่บางครั้งเชื่อมต่อ API ไม่สำเร็จชั่วคราว
+      const school = schoolStatsCache.find(s => s.School_ID === payload.School_ID);
+      if (school) {
+        school.Academic_Year = result.Academic_Year;
+        school.Semester = result.Semester;
+        school.Student_Count = result.Student_Count;
+        school.Student_Male_Count = Number(payload.Student_Male_Count) || 0;
+        school.Student_Female_Count = Number(payload.Student_Female_Count) || 0;
+        renderSchoolStatsList_();
+      }
+
+      // รีเฟรชซ้ำแบบเงียบๆ เพื่อให้ตรงกับ Server เป๊ะ (เผื่อมีคนอื่นแก้ไขพร้อมกัน)
+      // ถ้าเชื่อมต่อไม่สำเร็จ จะไม่ทับการ์ดที่อัปเดตไปแล้วด้านบน
+      loadSchoolStats(true);
     })
     .catch(err => {
       errorEl.textContent = err.message;
