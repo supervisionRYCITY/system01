@@ -6,6 +6,15 @@
 
 let schoolStatsCache = [];
 
+// Hook ที่ auth.js เรียกให้อัตโนมัติทุกครั้งหลัง Login/Logout สำเร็จ — Render การ์ดใหม่
+// ทันที เพื่อให้ปุ่ม "แก้ไข" ของแต่ละโรงเรียนอัปเดตตามสิทธิ์ล่าสุดเสมอ (แก้ปัญหาปุ่มค้าง
+// หลัง Logout เพราะเดิม canEditSchoolStat_() เช็คสิทธิ์แค่ตอน Render ครั้งแรกเท่านั้น)
+function onAuthStateChanged() {
+  if (schoolStatsCache.length) renderSchoolStatsList_();
+}
+
+// JSONP แบบเดียวกับใน js/home.js
+
 // ระดับชั้น: ชุดมาตรฐานตายตัว — ต้องตรงกับ GRADE_LEVELS_/SCHOOL_TYPE_GRADE_GROUPS_ ใน Code.gs เป๊ะ
 // (ถ้าจะแก้ไขรายการระดับชั้น ต้องแก้ทั้ง 2 ไฟล์ให้ตรงกัน)
 const GRADE_LEVELS_ = [
