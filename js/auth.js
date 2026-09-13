@@ -131,7 +131,11 @@ function checkAuthState() {
   callProxy('verifySession', { token: session.token })
     .then(user => renderAuthUI(user))
     .catch(() => {
-      clearSession();
+      // ไม่ clearSession() ที่นี่ เพราะ Error อาจเป็นแค่ Backend ช้า/Timeout ชั่วคราว
+      // ไม่ใช่ Token หมดอายุจริง — ถ้าล้างทิ้งทันที ผู้ใช้งานจะถูกเด้งออกจากระบบ
+      // ทั้งที่ Session ยังไม่หมดอายุ (อาการ "รีเฟรชแล้วข้อมูลผู้ใช้หายบางครั้ง")
+      // Session จะถูกลบออกจาก LocalStorage จริงๆ ก็ต่อเมื่อกด "ออกจากระบบ" (handleLogout) เท่านั้น
       renderAuthUI(null);
     });
+}
 }
