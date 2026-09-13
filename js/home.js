@@ -56,9 +56,10 @@ function isTrue(val) {
 // ---------------- ข่าวประชาสัมพันธ์ ----------------
 let newsCache = [];
 
-function loadNews() {
+function loadNews(preloadedData) {
   const row = document.getElementById('newsRow');
-  fetchAction('news')
+  const dataPromise = preloadedData ? Promise.resolve(preloadedData) : fetchAction('news');
+  dataPromise
     .then(data => {
       newsCache = data;
       if (!data.length) {
@@ -166,9 +167,10 @@ function selectNewsModalImage(url, thumbEl) {
 
 
 // ---------------- คู่มือและเอกสารวิชาการ (ชั้นหนังสือ) ----------------
-function loadDocuments() {
+function loadDocuments(preloadedData) {
   const row = document.getElementById('docsRow');
-  fetchAction('documents')
+  const dataPromise = preloadedData ? Promise.resolve(preloadedData) : fetchAction('documents');
+  dataPromise
     .then(data => {
       if (!data.length) {
         row.innerHTML = `<p class="text-sm text-ink/50">ยังไม่มีเอกสาร</p>`;
@@ -205,11 +207,12 @@ function downloadDocument(fileUrl) {
 }
 
 // ---------------- Dashboard สถานศึกษาในสังกัด ----------------
-function loadDashboard() {
+function loadDashboard(preloadedData) {
   const summaryEl = document.getElementById('statsSummary');
   const bySchoolEl = document.getElementById('statsBySchool');
 
-  fetchAction('dashboard')
+  const dataPromise = preloadedData ? Promise.resolve(preloadedData) : fetchAction('dashboard');
+  dataPromise
     .then(schools => {
       const totals = schools.reduce((acc, s) => ({
         admin: acc.admin + Number(s.Admin_Count || 0),
@@ -267,7 +270,17 @@ function loadDashboard() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  loadNews();
-  loadDocuments();
-  loadDashboard();
+  fetchAction('home')
+    .then(data => {
+      loadNews(data.news);
+      loadDocuments(data.documents);
+      loadDashboard(data.dashboard);
+    })
+    .catch(() => {
+      // ถ้า action=home ใช้งานไม่ได้ (เช่นยังไม่ได้ Deploy โค้ด Code.gs ใหม่)
+      // Fallback กลับไปเรียกทีละ Endpoint แบบเดิม หน้า Home จะยังใช้งานได้อยู่
+      loadNews();
+      loadDocuments();
+      loadDashboard();
+    });
 });
