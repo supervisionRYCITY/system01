@@ -55,8 +55,8 @@
   <!-- ============ Modal: แก้ไขข้อมูลนักเรียน ============ -->
   <div id="schoolStatFormModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/50" onclick="closeModal('schoolStatFormModal')"></div>
-    <div class="relative bg-white rounded-xl max-w-md w-full doc-card">
-      <div class="flex items-center justify-between px-5 py-4 border-b border-line">
+    <div class="relative bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto doc-card">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-line sticky top-0 bg-white z-10">
         <div>
           <h3 class="text-base font-semibold text-navy">แก้ไขข้อมูลนักเรียน</h3>
           <p id="schoolStatFormSchoolName" class="text-xs text-ink/50"></p>
@@ -88,7 +88,7 @@
             <p class="text-xs font-medium text-ink/60 text-center">ชาย</p>
             <p class="text-xs font-medium text-ink/60 text-center">หญิง</p>
           </div>
-          <div id="schoolStatFormGradeRows" class="space-y-1.5 max-h-56 overflow-y-auto pr-1"></div>
+          <div id="schoolStatFormGradeRows" class="space-y-1.5"></div>
         </div>
 
         <div class="flex items-center justify-between px-1 pt-1 border-t border-line text-sm font-medium text-navy">
