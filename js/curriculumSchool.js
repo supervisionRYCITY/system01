@@ -218,7 +218,9 @@ function handleDeleteCurriculum(curriculumId) {
     callProxy('deleteSchoolCurriculum', { token: session.token, Curriculum_ID: curriculumId })
       .then(() => {
         Swal.fire({ icon: 'success', title: 'ลบสำเร็จ', timer: 1000, showConfirmButton: false });
-        loadSchoolCurriculums();
+        // ลบออกจากหน้าจอทันที (Optimistic) ด้วยเหตุผลเดียวกับ curriculumLibrary.js
+        curriculumCache = curriculumCache.filter(c => c.Curriculum_ID !== curriculumId);
+        renderCurriculumContent_();
       })
       .catch(err => Swal.fire({ icon: 'error', title: 'ลบไม่สำเร็จ', text: err.message }));
   });
