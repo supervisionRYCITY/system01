@@ -171,7 +171,11 @@ function handleDeleteDocument(documentId) {
     callProxy('deleteDocument', { token: session.token, Document_ID: documentId })
       .then(() => {
         Swal.fire({ icon: 'success', title: 'ลบสำเร็จ', timer: 1000, showConfirmButton: false });
-        loadLibraryDocuments();
+        // ลบออกจากหน้าจอทันที (Optimistic) — ไม่เรียก loadLibraryDocuments() ซ้ำตรงนี้
+        // เพราะอาจไปโดน Cache ของ Vercel Edge ที่ยังไม่ทันอัปเดต (สูงสุด ~20 วิ) แล้วข้อมูล
+        // เก่าจะทับของที่เพิ่งลบถูกต้องไปแล้วกลับมาแสดงซ้ำอีกรอบ
+        libraryCache = libraryCache.filter(d => d.Document_ID !== documentId);
+        renderLibraryRow_();
       })
       .catch(err => Swal.fire({ icon: 'error', title: 'ลบไม่สำเร็จ', text: err.message }));
   });
