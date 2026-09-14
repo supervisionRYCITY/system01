@@ -148,18 +148,27 @@ function handleCurriculumFormSubmit(event) {
   errorEl.classList.add('hidden');
 
   const fileInput = document.getElementById('curriculumFormFile');
-  if (!curriculumId && !fileInput.files[0]) {
+  const selectedFile = fileInput.files[0];
+  if (!curriculumId && !selectedFile) {
     errorEl.textContent = 'กรุณาแนบไฟล์ PDF หลักสูตร';
     errorEl.classList.remove('hidden');
     return false;
   }
 
   submitBtn.disabled = true;
-  submitBtn.textContent = 'กำลังบันทึก...';
+  submitBtn.textContent = 'กำลังเตรียมข้อมูล...';
 
-  const filePromise = fileInput.files[0] ? fileToBase64_(fileInput.files[0]) : Promise.resolve(null);
+  // ไฟล์ใหญ่ (10-20MB) ต้องอัปโหลดแบบแบ่งชิ้น (Chunked) ก่อน ถึงจะได้ File_URL มาใช้บันทึก
+  // ถ้าไม่ได้เลือกไฟล์ใหม่ (แก้ไขแต่ข้อมูลอื่น) จะข้ามขั้นตอนนี้ไปเลย
+  const uploadPromise = selectedFile
+    ? uploadFileChunked_(session.token, selectedFile, percent => {
+        submitBtn.textContent = `กำลังอัปโหลดไฟล์... ${percent}%`;
+      })
+    : Promise.resolve(null);
 
-  filePromise.then(file => {
+  uploadPromise.then(uploadResult => {
+    submitBtn.textContent = 'กำลังบันทึก...';
+
     const schoolWrap = document.getElementById('curriculumFormSchoolWrap');
     const payload = {
       token: session.token,
@@ -168,8 +177,12 @@ function handleCurriculumFormSubmit(event) {
       Academic_Year: document.getElementById('curriculumFormYear').value,
       Education_Level: document.getElementById('curriculumFormLevel').value,
       Curriculum_Name: document.getElementById('curriculumFormName').value,
-      File: file,
     };
+
+    if (uploadResult) {
+      payload.File_URL = uploadResult.url;
+      payload.File_Name = selectedFile.name;
+    }
 
     const action = curriculumId ? 'updateSchoolCurriculum' : 'createSchoolCurriculum';
     return callProxy(action, payload);
