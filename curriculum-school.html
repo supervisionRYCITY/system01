@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>หลักสูตรสถานศึกษา | Supervision+</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/tailwind.output.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="font-sarabun bg-paper text-ink">
+
+  <div class="flex min-h-screen">
+    <div class="flex-1 flex flex-col min-w-0">
+      <div id="headerContainer"></div>
+
+      <main class="flex-1 px-4 sm:px-6 lg:px-8 py-6 space-y-6 w-full">
+        <section>
+          <div class="flex items-center justify-between mb-1">
+            <h2 class="text-lg font-semibold text-navy">หลักสูตรสถานศึกษา</h2>
+            <button id="curriculumAddBtn" onclick="openCurriculumForm()" class="hidden text-sm font-medium text-white bg-navy hover:bg-navy-dark px-4 py-2 rounded-lg shrink-0">
+              <i class="fa-solid fa-plus mr-1"></i>เพิ่มหลักสูตร
+            </button>
+          </div>
+          <p class="text-sm text-ink/60 mb-4">หลักสูตรของแต่ละสถานศึกษา เรียงตามโรงเรียน แยกสีตามโรงเรียน</p>
+          <div id="curriculumContent">
+            <p class="text-sm text-ink/40">กำลังโหลด...</p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="sidebarContainer"></div>
+  </div>
+
+  <div id="loginModalContainer"></div>
+
+  <!-- ============ Modal: เพิ่ม/แก้ไขหลักสูตร ============ -->
+  <div id="curriculumFormModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/50" onclick="closeModal('curriculumFormModal')"></div>
+    <div class="relative bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto doc-card">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-line sticky top-0 bg-white z-10">
+        <h3 id="curriculumFormTitle" class="text-base font-semibold text-navy">เพิ่มหลักสูตร</h3>
+        <button onclick="closeModal('curriculumFormModal')" class="text-ink/40 hover:text-ink" aria-label="ปิด">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+      <form id="curriculumForm" class="px-5 py-4 space-y-3" onsubmit="return handleCurriculumFormSubmit(event)">
+        <input type="hidden" id="curriculumFormId">
+        <div id="curriculumFormSchoolWrap" class="hidden">
+          <label class="block text-xs font-medium text-ink/60 mb-1">สถานศึกษา</label>
+          <select id="curriculumFormSchool" class="w-full px-3 py-2 rounded-lg border border-line text-sm bg-white focus:outline-none focus:border-navy"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-ink/60 mb-1">ปีการศึกษา (พ.ศ.)</label>
+            <input type="number" id="curriculumFormYear" required class="w-full px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:border-navy">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-ink/60 mb-1">ระดับการศึกษา</label>
+            <select id="curriculumFormLevel" required class="w-full px-3 py-2 rounded-lg border border-line text-sm bg-white focus:outline-none focus:border-navy">
+              <option value="ปฐมวัย">ปฐมวัย</option>
+              <option value="ประถมศึกษา">ประถมศึกษา</option>
+              <option value="มัธยมศึกษาตอนต้น">มัธยมศึกษาตอนต้น</option>
+              <option value="มัธยมศึกษาตอนปลาย">มัธยมศึกษาตอนปลาย</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-ink/60 mb-1">ชื่อหลักสูตร</label>
+          <input type="text" id="curriculumFormName" required class="w-full px-3 py-2 rounded-lg border border-line text-sm focus:outline-none focus:border-navy">
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-ink/60 mb-1">ไฟล์ PDF หลักสูตร</label>
+          <input type="file" id="curriculumFormFile" accept="application/pdf" class="w-full text-sm">
+          <p id="curriculumFormExistingFile" class="hidden text-xs text-ink/50 mt-1"></p>
+        </div>
+        <p id="curriculumFormError" class="hidden text-xs text-red-600"></p>
+        <button type="submit" id="curriculumFormSubmitBtn" class="w-full py-2.5 rounded-lg bg-navy text-white text-sm font-medium hover:bg-navy-dark disabled:opacity-60">
+          บันทึก
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.10.1/sweetalert2.all.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/common.js"></script>
+  <script src="js/curriculumSchool.js"></script>
+</body>
+</html>
