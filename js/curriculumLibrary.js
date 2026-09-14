@@ -73,7 +73,6 @@ function openDocumentForm(documentId) {
   document.getElementById('documentFormStatus').value = doc ? doc.Status : 'Published';
   document.getElementById('documentFormFeatured').checked = !!(doc && (doc.Is_Featured === true || doc.Is_Featured === 'TRUE'));
   document.getElementById('documentFormFile').value = '';
-  document.getElementById('documentFormCover').value = '';
 
   const existingFileEl = document.getElementById('documentFormExistingFile');
   if (doc && doc.File_URL) {
@@ -100,7 +99,6 @@ function handleDocumentFormSubmit(event) {
   errorEl.classList.add('hidden');
 
   const fileInput = document.getElementById('documentFormFile');
-  const coverInput = document.getElementById('documentFormCover');
   const selectedFile = fileInput.files[0];
 
   if (!documentId && !selectedFile) {
@@ -112,7 +110,8 @@ function handleDocumentFormSubmit(event) {
   submitBtn.disabled = true;
   submitBtn.textContent = 'กำลังเตรียมข้อมูล...';
 
-  // ไฟล์ PDF หลัก (มักใหญ่) ใช้ Chunked Upload / รูปหน้าปก (เล็ก) ยังส่งแบบ Base64 ก้อนเดียวได้
+  // ไฟล์ PDF อัปโหลดผ่าน Chunked Upload — ภาพหน้าปกดึงจาก Thumbnail ของไฟล์เดียวกันอัตโนมัติ
+  // (thumbnailUrl ที่ finalizeFileUpload_ คืนมา) ไม่ต้องอัปโหลดรูปแยกอีกต่อไป
   const uploadPromise = selectedFile
     ? uploadFileChunked_(session.token, selectedFile, percent => {
         submitBtn.textContent = `กำลังอัปโหลดไฟล์... ${percent}%`;
@@ -121,9 +120,7 @@ function handleDocumentFormSubmit(event) {
 
   uploadPromise.then(uploadResult => {
     submitBtn.textContent = 'กำลังบันทึก...';
-    return (coverInput.files[0] ? fileToBase64_(coverInput.files[0]) : Promise.resolve(null))
-      .then(newCover => ({ uploadResult: uploadResult, newCover: newCover }));
-  }).then(({ uploadResult, newCover }) => {
+
     const payload = {
       token: session.token,
       Document_ID: documentId || undefined,
@@ -132,11 +129,11 @@ function handleDocumentFormSubmit(event) {
       Source_System: CURRICULUM_SOURCE_SYSTEM,
       Status: document.getElementById('documentFormStatus').value,
       Is_Featured: document.getElementById('documentFormFeatured').checked,
-      NewCoverImage: newCover,
     };
 
     if (uploadResult) {
       payload.File_URL = uploadResult.url;
+      payload.Cover_Image_URL = uploadResult.thumbnailUrl;
       payload.File_Type = 'PDF';
     }
 
