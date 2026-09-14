@@ -33,11 +33,15 @@ export default async function handler(req, res) {
     const targetUrl = gasUrl + '?action=' + encodeURIComponent(action);
     const data = await callGasGetWithRedirect_(targetUrl);
 
-    // max-age=60: Browser เก็บสั้นๆ 1 นาที
-    // s-maxage=300: Vercel Edge/CDN เก็บ 5 นาที (ตรงกับ Cache ฝั่ง GAS ที่ตั้งไว้)
-    // stale-while-revalidate=600: ถ้า Cache หมดอายุ ยังเสิร์ฟของเก่าต่อได้ทันที
-    // ระหว่างที่ Vercel ไปขอข้อมูลใหม่จาก GAS อยู่เบื้องหลัง ผู้ใช้ไม่ต้องรอเลย
-    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+    // max-age=10: Browser เก็บสั้นๆ 10 วินาที
+    // s-maxage=20: Vercel Edge/CDN เก็บ 20 วินาที เท่านั้น (ลดจาก 300 วิ)
+    // เหตุผล: Cache ชั้นนี้ไม่รู้เมื่อ Admin แก้/ลบข้อมูล (Cache ฝั่ง GAS ถูกล้างทันทีตอนมีการ
+    // แก้ไขอยู่แล้ว แต่ Cache ชั้นนี้เป็นคนละระบบ ไม่มีกลไกแจ้งให้ล้างตาม) ถ้าตั้งนานเกินไป
+    // ข้อมูลที่ลบ/แก้ไขไปแล้วจะยัง "ค้าง" แสดงผลเก่าอยู่จนกว่า Cache จะหมดอายุเอง
+    // 20 วินาทีเป็นจุดสมดุลที่ยังได้ประโยชน์ด้าน Performance เวลามีคนเข้าพร้อมกันเยอะๆ
+    // แต่ไม่ทำให้ข้อมูลค้างนานจนรู้สึกได้ (คนละส่วนกับ Optimistic Update ที่ทำให้ผู้ที่แก้ไข
+    // เองเห็นผลทันทีอยู่แล้วโดยไม่ต้องพึ่ง Cache นี้เลย)
+    res.setHeader('Cache-Control', 'public, max-age=10, s-maxage=20, stale-while-revalidate=60');
     res.status(200).json(data);
   } catch (err) {
     res.status(502).json({ status: 'error', message: 'เชื่อมต่อ Backend (GAS) ไม่สำเร็จ: ' + err.message });
