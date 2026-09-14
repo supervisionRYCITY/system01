@@ -67,3 +67,38 @@ function closeModal(modalId) {
 
 // หมายเหตุ: ฟังก์ชัน openStaffLogin() ย้ายไปอยู่ที่ js/auth.js แล้ว
 // (เดิมเป็น Placeholder เฉยๆ ตอนนี้เปิด Modal Login จริง)
+
+
+// ---------------------------------------------------------------
+// Helper กลาง: ใช้ร่วมกันได้ทุกหน้า (Common.js โหลดอยู่แล้วทุกหน้าอยู่แล้ว)
+// ---------------------------------------------------------------
+
+// เรียก GET ผ่าน Vercel Edge-Cached Proxy พร้อม Retry อัตโนมัติ (รูปแบบเดียวกับที่ใช้ใน
+// home.js/schoolStats.js เดิม แต่ย้ายมาไว้ที่นี่ให้หน้าใหม่เรียกใช้ซ้ำได้โดยไม่ต้องเขียนซ้ำ)
+function fetchApiGet_(url, retriesLeft) {
+  if (retriesLeft === undefined) retriesLeft = 2;
+  return fetch(url)
+    .then(res => {
+      if (!res.ok) throw new Error('เชื่อมต่อ API ไม่สำเร็จ (' + res.status + ')');
+      return res.json();
+    })
+    .catch(err => {
+      if (retriesLeft <= 0) throw err;
+      return new Promise(resolve => setTimeout(resolve, 800))
+        .then(() => fetchApiGet_(url, retriesLeft - 1));
+    });
+}
+
+// แปลงไฟล์ที่ผู้ใช้เลือก (จาก <input type="file">) เป็น Base64 สำหรับส่งขึ้น Backend
+// คืนค่า { base64, filename, mimeType } — ใช้กับทั้งรูปภาพและ PDF ได้เหมือนกัน
+function fileToBase64_(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result.split(',')[1];
+      resolve({ base64: base64, filename: file.name, mimeType: file.type });
+    };
+    reader.onerror = () => reject(new Error('อ่านไฟล์ไม่สำเร็จ'));
+    reader.readAsDataURL(file);
+  });
+}
