@@ -60,12 +60,20 @@
         <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-ink/80 hover:bg-paper hover:text-navy">
           <i class="fa-solid fa-magnifying-glass-chart w-4 text-center text-ink/40"></i> ระบบงานนิเทศ
         </a>
-        <a href="curriculum-school.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-ink/80 hover:bg-paper hover:text-navy">
-          <i class="fa-solid fa-file-pdf w-4 text-center text-ink/40"></i> หลักสูตรสถานศึกษา
-        </a>
-        <a href="curriculum-library.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-ink/80 hover:bg-paper hover:text-navy">
-          <i class="fa-solid fa-book-open w-4 text-center text-ink/40"></i> เอกสารวิชาการด้านหลักสูตร
-        </a>
+        <button onclick="toggleSidebarGroup('grp-curriculum')" class="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-ink/80 hover:bg-paper hover:text-navy">
+          <span class="flex items-center gap-3">
+            <i class="fa-solid fa-book w-4 text-center text-ink/40"></i> ระบบงานหลักสูตร
+          </span>
+          <i id="grp-curriculum-icon" class="fa-solid fa-chevron-down text-[10px] transition-transform -rotate-90"></i>
+        </button>
+        <div id="grp-curriculum" class="sidebar-group-panel space-y-1 pl-7">
+          <a href="curriculum-school.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-ink/70 hover:bg-paper hover:text-navy">
+            <i class="fa-solid fa-file-pdf w-4 text-center text-ink/40 text-xs"></i> หลักสูตรสถานศึกษา
+          </a>
+          <a href="curriculum-library.html" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-ink/70 hover:bg-paper hover:text-navy">
+            <i class="fa-solid fa-book-open w-4 text-center text-ink/40 text-xs"></i> เอกสารวิชาการด้านหลักสูตร
+          </a>
+        </div>
         <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-ink/80 hover:bg-paper hover:text-navy">
           <i class="fa-solid fa-shield-halved w-4 text-center text-ink/40"></i> ระบบงานประกันคุณภาพ
         </a>
