@@ -86,7 +86,6 @@ function openDocumentForm(documentId) {
   document.getElementById('documentFormError').classList.add('hidden');
   openModal('documentFormModal');
 }
-
 function handleDocumentFormSubmit(event) {
   event.preventDefault();
   const session = getSession();
@@ -102,32 +101,44 @@ function handleDocumentFormSubmit(event) {
 
   const fileInput = document.getElementById('documentFormFile');
   const coverInput = document.getElementById('documentFormCover');
+  const selectedFile = fileInput.files[0];
 
-  if (!documentId && !fileInput.files[0]) {
+  if (!documentId && !selectedFile) {
     errorEl.textContent = 'กรุณาแนบไฟล์ PDF';
     errorEl.classList.remove('hidden');
     return false;
   }
 
   submitBtn.disabled = true;
-  submitBtn.textContent = 'กำลังบันทึก...';
+  submitBtn.textContent = 'กำลังเตรียมข้อมูล...';
 
-  Promise.all([
-    fileInput.files[0] ? fileToBase64_(fileInput.files[0]) : Promise.resolve(null),
-    coverInput.files[0] ? fileToBase64_(coverInput.files[0]) : Promise.resolve(null),
-  ]).then(([newFile, newCover]) => {
+  // ไฟล์ PDF หลัก (มักใหญ่) ใช้ Chunked Upload / รูปหน้าปก (เล็ก) ยังส่งแบบ Base64 ก้อนเดียวได้
+  const uploadPromise = selectedFile
+    ? uploadFileChunked_(session.token, selectedFile, percent => {
+        submitBtn.textContent = `กำลังอัปโหลดไฟล์... ${percent}%`;
+      })
+    : Promise.resolve(null);
+
+  uploadPromise.then(uploadResult => {
+    submitBtn.textContent = 'กำลังบันทึก...';
+    return (coverInput.files[0] ? fileToBase64_(coverInput.files[0]) : Promise.resolve(null))
+      .then(newCover => ({ uploadResult: uploadResult, newCover: newCover }));
+  }).then(({ uploadResult, newCover }) => {
     const payload = {
       token: session.token,
       Document_ID: documentId || undefined,
       Title: document.getElementById('documentFormTitleInput').value,
       Category: document.getElementById('documentFormCategory').value,
       Source_System: CURRICULUM_SOURCE_SYSTEM,
-      File_Type: newFile ? 'PDF' : undefined,
       Status: document.getElementById('documentFormStatus').value,
       Is_Featured: document.getElementById('documentFormFeatured').checked,
-      NewFile: newFile,
       NewCoverImage: newCover,
     };
+
+    if (uploadResult) {
+      payload.File_URL = uploadResult.url;
+      payload.File_Type = 'PDF';
+    }
 
     const action = documentId ? 'updateDocument' : 'createDocument';
     return callProxy(action, payload);
